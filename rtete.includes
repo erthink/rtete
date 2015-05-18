@@ -1,0 +1,5 @@
+.
+../linux-3.3-psp03.22.00.06.sdk/include/linux/spi
+../linux-3.3-psp03.22.00.06.sdk/arch/arm/mach-davinci
+../linux-3.3-psp03.22.00.06.sdk/drivers/spi
+../linux-3.3-psp03.22.00.06.sdk/include/linux

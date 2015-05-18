@@ -1,1 +1,1 @@
-obj-m += proba.o
+obj-m += rtete.o
