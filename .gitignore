@@ -1,0 +1,10 @@
+modules.order
+Module.symvers
+proba.ko
+.proba.ko.cmd
+proba.mod.c
+proba.mod.o
+.proba.mod.o.cmd
+proba.o
+.proba.o.cmd
+.tmp_versions
