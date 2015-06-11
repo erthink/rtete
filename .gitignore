@@ -1,10 +1,10 @@
 modules.order
 Module.symvers
-proba.ko
-.proba.ko.cmd
-proba.mod.c
-proba.mod.o
-.proba.mod.o.cmd
-proba.o
-.proba.o.cmd
+rtete.ko
+.rtete.ko.cmd
+rtete.mod.c
+rtete.mod.o
+.rtete.mod.o.cmd
+rtete.o
+.rtete.o.cmd
 .tmp_versions
