@@ -78,7 +78,7 @@ struct rtete {
 	struct net_device *netdev;
 
 	struct iospi iospi;
-	struct iopcm rx, tx, cntl;
+	struct iopcm rx, tx;
 	int tx_watermark;
 
 	struct task_struct *thread;
@@ -616,14 +616,6 @@ static int rtete_iopcm_open(struct rtete *rtete)
 	if (! rtete->tx.buf || ! rtete->rx.buf)
 		return -ENOMEM;
 
-	rtete->cntl.filp = filp_open(rtete->cntl.filename, O_RDWR, 0);
-	if (IS_ERR(rtete->cntl.filp)) {
-		err = PTR_ERR(rtete->cntl.filp);
-		rtete->cntl.filp = NULL;
-		ERROR(rtete, "No such PCM-control device: %s\n", rtete->cntl.filename);
-		return err;
-	}
-
 	rtete->tx.filp = filp_open(rtete->tx.filename, O_WRONLY | O_NONBLOCK, 0);
 	if (IS_ERR(rtete->tx.filp)) {
 		err = PTR_ERR(rtete->tx.filp);
@@ -679,12 +671,6 @@ static void rtete_iopcm_close(struct rtete *rtete)
 	if (rtete->rx.filp) {
 		filp_close(rtete->rx.filp, NULL);
 		rtete->rx.filp = NULL;
-	}
-
-	TRACE(rtete);
-	if (rtete->cntl.filp) {
-		filp_close(rtete->cntl.filp, NULL);
-		rtete->cntl.filp = NULL;
 	}
 
 	kfree(rtete->tx.buf);
@@ -1122,7 +1108,6 @@ int omapl138_rtbi_rtete_init(struct spi_device *spi_altera,
 							 struct spi_device *spi_idt82,
 							 const char* pcm_tx,
 							 const char* pcm_rx,
-							 const char* pcm_cntl,
 							 struct net_device **pdev)
 {
 	struct net_device *dev;
@@ -1149,7 +1134,6 @@ int omapl138_rtbi_rtete_init(struct spi_device *spi_altera,
 	rtete->spi_idt82 = spi_idt82;
 	rtete->rx.filename = pcm_rx;
 	rtete->tx.filename = pcm_tx;
-	rtete->cntl.filename = pcm_cntl;
 
 	rc = register_netdev(dev);
 	TRACE(rtete);
@@ -1170,15 +1154,11 @@ static char *pcm_rx = "/dev/snd/pcmC0D0c";
 module_param(pcm_rx, charp, S_IRUGO);
 MODULE_PARM_DESC(pcm_rx, "Capture PCM device file name");
 
-static char *pcm_cntl = "/dev/snd/controlC0";
-module_param(pcm_cntl, charp, S_IRUGO);
-MODULE_PARM_DESC(pcm_cntl, "Control device file name");
-
 static struct net_device *rtete_netdev;
 
 static int __init rtete_init_module(void) {
 	printk(KERN_INFO "rtete-init/loaded.\n");
-	return omapl138_rtbi_rtete_init(NULL, NULL, pcm_tx, pcm_rx, pcm_cntl, &rtete_netdev);
+	return omapl138_rtbi_rtete_init(NULL, NULL, pcm_tx, pcm_rx, &rtete_netdev);
 }
 
 static void __exit rtete_cleanup_module(void) {
