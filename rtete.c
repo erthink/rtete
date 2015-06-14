@@ -48,7 +48,7 @@
  *
  */
 
-#define RTETE_TX_QUEUE_LEN	16
+#define RTETE_TX_QUEUE_LEN	32
 #define RTETE_IO_CHUNK		1024
 #define	RTETE_SPI			0
 
@@ -136,8 +136,8 @@ static int rtete_get_carrier(struct rtete *rtete)
  * Фрейминг и байт-стаффинг.
  */
 
-#define GOT_ERR	256
-#define GOT_ESC	512
+#define GOT_ERR	512
+#define GOT_ESC	256
 #define END		255	/* indicates end of frame	*/
 #define ESC		254	/* indicates byte stuffing	*/
 #define ESC_END	253	/* ESC ESC_END means END 'data' */
@@ -204,7 +204,7 @@ static void rtete_parse_rx(struct rtete *rtete, u8* src, int src_len) {
 				}
 
 				skb_put(rtete->rx_skb, pkt_len);
-				dump("rx-pkt", rtete->rx_skb->data, rtete->rx_skb->len);
+				//dump("rx-pkt", rtete->rx_skb->data, rtete->rx_skb->len);
 				dev->stats.rx_bytes += rtete->rx_skb->len;
 				dev->stats.rx_packets++;
 				skb_reset_mac_header(rtete->rx_skb);
@@ -216,6 +216,7 @@ static void rtete_parse_rx(struct rtete *rtete, u8* src, int src_len) {
 			default:
 				//TRACE(rtete);
 				if (rtete->rx_flags != GOT_ERR) {
+					DEBUG(rtete, "rx-err: char %d, flags %d\n", (u8) c, rtete->rx_flags);
 					rtete->rx_flags = GOT_ERR;
 					dev->stats.rx_frame_errors++;
 				}
@@ -237,12 +238,18 @@ static void rtete_parse_rx(struct rtete *rtete, u8* src, int src_len) {
 				WARNING(rtete, "memory squeeze, dropping packet.\n");
 				dev->stats.rx_dropped++;
 				rtete->rx_flags = GOT_ERR;
-				continue;
+				break;
 			}
 			rtete->rx_skb->dev = dev;
 			rtete->rx_begin = rtete->rx_skb->data;
 			rtete->rx_ptr = rtete->rx_begin;
+#if 0
+			// актуальные ядра
 			rtete->rx_end = rtete->rx_begin + skb_availroom(rtete->rx_skb);
+#else
+			// старые ядра
+			rtete->rx_end = rtete->rx_begin + skb_tailroom(rtete->rx_skb);
+#endif
 			BUG_ON(rtete->rx_ptr >= rtete->rx_end);
 		}
 
@@ -290,7 +297,7 @@ static void rtete_fill_tx(struct rtete *rtete, u8* dst, int dst_len) {
 			if (rtete_is_running(rtete) && skb_queue_len(&rtete->queue) < rtete->netdev->tx_queue_len)
 				netif_wake_queue(rtete->netdev);
 
-			dump("tx-pkt", rtete->tx_skb->data, rtete->tx_skb->len);
+			//dump("tx-pkt", rtete->tx_skb->data, rtete->tx_skb->len);
 			rtete->netdev->stats.tx_bytes += rtete->tx_skb->len - sizeof(u32 /* crc */);
 			rtete->netdev->stats.tx_packets++;
 			rtete->tx_ptr = rtete->tx_skb->data;

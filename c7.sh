@@ -9,7 +9,7 @@ rmmod snd-aloop
 dmesg -c > before.log
 sync
 modprobe snd-aloop
-insmod ./rtete.ko pcm_tx=/dev/snd/pcmC1D0p pcm_rx=/dev/snd/pcmC1D1c pcm_cntl=/dev/snd/controlC1
+insmod ./rtete.ko pcm_tx=/dev/snd/pcmC1D0p pcm_rx=/dev/snd/pcmC1D1c
 cat '/proc/asound/card1/cable#0'
 sleep 10
 ifconfig rtete0
